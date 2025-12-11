@@ -1,13 +1,34 @@
 // models/cardModel.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const CardSchema = new mongoose.Schema({
-  cardId: { type: String, trim: true, unique: true, sparse: true }, // optional short id
-  imageUrl: { type: String },
-  cardTitle: { type: String },
-  description: { type: String },
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Sender' }, // who created the card
-  metadata: { type: mongoose.Schema.Types.Mixed }
-}, { timestamps: true });
+const CardSchema = new mongoose.Schema(
+  {
+    title: { type: String, trim: true },
+    description: { type: String, trim: true },
+    imageUrl: { type: String }, // cover/thumbnail
+    templateData: { type: mongoose.Schema.Types.Mixed }, // e.g. positions, colors, fonts, placeholder text
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    }, // null -> marketplace/default
+    type: {
+      type: String,
+      enum: ["default", "official", "marketplace", "user"],
+      default: "user",
+    },
+    isDynamic: { type: Boolean, default: false },
+    isPublic: { type: Boolean, default: true },
+    stats: {
+      likes: { type: Number, default: 0 },
+      downloads: { type: Number, default: 0 },
+      shares: { type: Number, default: 0 },
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = mongoose.models.InvitationCard || mongoose.model('InvitationCard', CardSchema);
+CardSchema.index({ creator: 1 });
+module.exports = mongoose.models.Card || mongoose.model("Card", CardSchema);
