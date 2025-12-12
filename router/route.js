@@ -18,15 +18,15 @@ router.get("/debug", (req, res) => {
   return res.send({ data: data });
 });
 
-/* AUTH - email */
+// email
 router.post("/auth/signup", authCtrl.signupWithEmail);
 router.post("/auth/login", authCtrl.loginWithEmail);
+router.get("/auth/logout", authCtrl.logout);
 
-/* Protected profile */
+// Protected profile
 router.get("/auth/profile", verifyToken, authCtrl.currentProfile);
 
-/*passport initialized in index.js) */
-/* OAuth routes */
+// google
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -40,6 +40,8 @@ router.get(
   authCtrl.oauthCallbackHandler
 );
 
+// ___________________________________________________
+// facebook
 router.get(
   "/auth/facebook",
   passport.authenticate("facebook", { scope: ["email"] })
@@ -52,7 +54,7 @@ router.get(
   }),
   authCtrl.oauthCallbackHandler
 );
-
+// linkedin
 router.get("/auth/linkedin", passport.authenticate("linkedin"));
 router.get(
   "/auth/linkedin/callback",
@@ -62,7 +64,7 @@ router.get(
   }),
   authCtrl.oauthCallbackHandler
 );
-
+// ___________________________________________________
 router.get("/auth/failure", (req, res) =>
   res.status(401).json({ ok: false, message: "Authentication failed" })
 );

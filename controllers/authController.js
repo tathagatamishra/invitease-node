@@ -86,3 +86,39 @@ exports.currentProfile = async (req, res) => {
     return res.status(500).json({ ok: false });
   }
 };
+
+/* Logout - destroys session (Passport + express-session) */
+exports.logout = (req, res) => {
+  try {
+    // For Passport 0.6+ req.logout requires a callback
+    if (req.logout) {
+      req.logout(function(err) {
+        // ignore logout error but destroy session below
+        if (err) console.warn('req.logout error', err);
+        // destroy session
+        if (req.session) {
+          req.session.destroy((sdErr) => {
+            // clear cookie for express-session default name 'connect.sid'
+            res.clearCookie('connect.sid', { path: '/' });
+            return res.json({ ok: true, message: 'Logged out (session destroyed)' });
+          });
+        } else {
+          res.json({ ok: true, message: 'Logged out' });
+        }
+      });
+    } else {
+      // fallback: destroy session if exists
+      if (req.session) {
+        req.session.destroy(() => {
+          res.clearCookie('connect.sid', { path: '/' });
+          return res.json({ ok: true, message: 'Logged out' });
+        });
+      } else {
+        res.json({ ok: true, message: 'Logged out' });
+      }
+    }
+  } catch (err) {
+    console.error('Logout error', err);
+    res.status(500).json({ ok: false, message: 'Logout failed' });
+  }
+};

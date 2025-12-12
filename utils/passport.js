@@ -24,25 +24,38 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+      // get photo if available
+      const photoUrl = profile.photos && profile.photos[0] && profile.photos[0].value;
+
+      // try to find by oauth entry first, then by email
       let user = await User.findOne({ 'oauth.provider': 'google', 'oauth.providerId': profile.id });
       if (!user && email) user = await User.findOne({ email });
       if (!user) {
+        // create new user and save profile image if available
         user = new User({
           fullName: profile.displayName || email,
           email,
           loginMethods: ['google'],
           oauth: [{ provider: 'google', providerId: profile.id }],
           verified: true,
-          role: 'sender'
+          role: 'sender',
+          profileImage: photoUrl || undefined
         });
         await user.save();
       } else {
-        const exists = (user.oauth || []).some(o => o.provider === 'google' && o.providerId === profile.id);
-        if (!exists) {
+        // ensure oauth entry exists
+        const existsOauth = (user.oauth || []).some(o => o.provider === 'google' && o.providerId === profile.id);
+        if (!existsOauth) {
           user.oauth = user.oauth || [];
           user.oauth.push({ provider: 'google', providerId: profile.id });
-          await user.save();
         }
+        // update profileImage if Google provides one and user doesn't already have a profileImage
+        if (photoUrl && (!user.profileImage || user.profileImage.indexOf('googleusercontent') !== -1)) {
+          user.profileImage = photoUrl;
+        }
+        // if user email is missing but Google provides, set it
+        if (email && !user.email) user.email = email;
+        await user.save();
       }
       done(null, user);
     } catch (err) {

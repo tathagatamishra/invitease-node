@@ -35,25 +35,30 @@ app.use(
 
 app.use(express.json());
 
-const passport = require('passport');
-const session = require('express-session');
+// -------------------------------
+const passport = require("passport");
+const session = require("express-session");
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false } // set secure:true when using https
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: true },
+    // https --> secure:true || http --> secure:false
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
-require('./utils/passport'); // this file registers strategies (no-op if envs not set)
+require("./utils/passport");
+// -------------------------------
 
 app.use(route);
 connectDB();
 
-const PORT = process.env.PORT || 1234;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
-  console.log(`Server Run on ${PORT} ...`);
+  console.log(`Server is running...`);
 });
