@@ -1,4 +1,4 @@
-const cloudinary = require("../config/cloudinary");
+const cloudinary = require("../configs/cloudinary");
 
 exports.getCloudSignature = async (req, res) => {
   try {

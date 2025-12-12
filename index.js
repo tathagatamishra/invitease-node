@@ -34,6 +34,21 @@ app.use(
 );
 
 app.use(express.json());
+
+const passport = require('passport');
+const session = require('express-session');
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // set secure:true when using https
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+require('./utils/passport'); // this file registers strategies (no-op if envs not set)
+
 app.use(route);
 connectDB();
 
